@@ -2,240 +2,174 @@ import { Telegraf, Markup } from 'telegraf';
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN!);
 
-const STATIONS = [
-  { name: "NPR News", frequency: "89.3 FM", emoji: "📻" },
-  { name: "KEXP", frequency: "90.3 FM", emoji: "🎵" },
-  { name: "WNYC", frequency: "93.9 FM", emoji: "🎙️" },
-  { name: "KCRW", frequency: "89.9 FM", emoji: "🎧" },
-];
+const getWebAppUrl = () => {
+  const domain = process.env.REPLIT_DEV_DOMAIN || 'https://clinego.replit.app';
+  return domain.startsWith('http') ? domain : `https://${domain}`;
+};
 
 bot.start((ctx) => {
+  const webAppUrl = getWebAppUrl();
+  
   ctx.reply(
-    `🚀 *Добро пожаловать в ClineGo IDE Bot!*
+    `🚀 *Добро пожаловать в ClineGo IDE!*
 
-Я помогу вам работать с кодом, слушать радио и играть в игры прямо в Telegram!
+AI-powered среда разработки прямо в Telegram
 
-*Доступные команды:*
-/code - Открыть редактор кода
-/radio - Интернет радио
-/games - Игры (Snake, 2048)
-/offer - Генератор предложений
-/extension - Скачать Codex Free
-/help - Показать помощь`,
-    { parse_mode: 'Markdown' }
-  );
-});
+*Возможности:*
+💻 Monaco Code Editor
+📻 Интернет радио (NPR, KEXP, WNYC, KCRW)
+🎮 Игры (Snake, 2048)
+📄 Генератор предложений
+📦 VSCode расширение
 
-bot.help((ctx) => {
-  ctx.reply(
-    `📚 *Команды ClineGo Bot:*
-
-/code - Редактор кода Monaco
-/radio - Радио станции США
-/games - Змейка и 2048
-/offer - Создать бизнес-оффер
-/extension - Скачать расширение VSCode
-/about - О проекте`,
-    { parse_mode: 'Markdown' }
-  );
-});
-
-bot.command('code', (ctx) => {
-  ctx.reply(
-    `💻 *Monaco Code Editor*
-
-Функции:
-✅ Подсветка синтаксиса
-✅ Автодополнение кода
-✅ TypeScript/JavaScript
-✅ Множество языков
-
-Для полноценной работы используйте веб-версию:
-🌐 ${process.env.REPLIT_DEV_DOMAIN || 'https://clinego.replit.app'}`,
+Нажмите кнопку ниже для запуска приложения! 👇`,
     {
       parse_mode: 'Markdown',
+      ...Markup.keyboard([
+        [Markup.button.webApp('🚀 Открыть ClineGo IDE', webAppUrl)],
+        [Markup.button.text('📚 Помощь'), Markup.button.text('ℹ️ О проекте')]
+      ]).resize()
+    }
+  );
+});
+
+bot.hears('📚 Помощь', (ctx) => {
+  ctx.reply(
+    `📚 *Как пользоваться ClineGo IDE:*
+
+1️⃣ Нажмите кнопку "🚀 Открыть ClineGo IDE"
+2️⃣ Приложение откроется во встроенном браузере
+3️⃣ Используйте все функции прямо в Telegram!
+
+*Основные разделы:*
+• **Редактор** - пишите код с подсветкой
+• **Радио** - слушайте музыку во время работы
+• **Игры** - отдохните со Snake или 2048
+• **Офферы** - создавайте бизнес-предложения
+
+Все работает без выхода из Telegram! 🎉`,
+    { parse_mode: 'Markdown' }
+  );
+});
+
+bot.hears('ℹ️ О проекте', (ctx) => {
+  ctx.reply(
+    `ℹ️ *О ClineGo IDE*
+
+AI-powered среда разработки с интегрированными инструментами
+
+*Технологии:*
+• React + TypeScript
+• Monaco Editor
+• Telegram WebApp API
+• Node.js + Express
+
+*GitHub:*
+github.com/hoOjlGun/super-octo-robot
+
+*Автор:* @ClineGo_Team
+*Версия:* 1.0.0`,
+    { parse_mode: 'Markdown' }
+  );
+});
+
+bot.command('app', (ctx) => {
+  const webAppUrl = getWebAppUrl();
+  
+  ctx.reply(
+    '🚀 Запускаю ClineGo IDE...',
+    {
       ...Markup.inlineKeyboard([
-        [Markup.button.url('Открыть редактор', process.env.REPLIT_DEV_DOMAIN || 'https://clinego.replit.app')]
+        [Markup.button.webApp('🚀 Открыть приложение', webAppUrl)]
       ])
     }
   );
 });
 
 bot.command('radio', (ctx) => {
-  const buttons = STATIONS.map(station => [
-    Markup.button.callback(
-      `${station.emoji} ${station.name} - ${station.frequency}`,
-      `radio_${station.name}`
-    )
-  ]);
-
+  const webAppUrl = `${getWebAppUrl()}?view=radio`;
+  
   ctx.reply(
-    `📻 *Интернет Радио*
-
-Выберите станцию:`,
+    '📻 Открываю интернет-радио...',
     {
-      parse_mode: 'Markdown',
-      ...Markup.inlineKeyboard(buttons)
+      ...Markup.inlineKeyboard([
+        [Markup.button.webApp('📻 Слушать радио', webAppUrl)]
+      ])
     }
   );
-});
-
-STATIONS.forEach(station => {
-  bot.action(`radio_${station.name}`, (ctx) => {
-    ctx.answerCbQuery();
-    ctx.reply(
-      `${station.emoji} *${station.name}*\n${station.frequency}\n\n▶️ Играет...`,
-      { parse_mode: 'Markdown' }
-    );
-  });
 });
 
 bot.command('games', (ctx) => {
+  const webAppUrl = `${getWebAppUrl()}?view=games`;
+  
   ctx.reply(
-    `🎮 *Игры ClineGo*
-
-Выберите игру:`,
+    '🎮 Открываю игры...',
     {
-      parse_mode: 'Markdown',
       ...Markup.inlineKeyboard([
-        [Markup.button.callback('🐍 Snake (WASD)', 'game_snake')],
-        [Markup.button.callback('🎯 2048', 'game_2048')],
+        [Markup.button.webApp('🎮 Играть', webAppUrl)]
       ])
     }
   );
 });
 
-bot.action('game_snake', (ctx) => {
-  ctx.answerCbQuery();
+bot.command('code', (ctx) => {
+  const webAppUrl = `${getWebAppUrl()}?view=editor`;
+  
   ctx.reply(
-    `🐍 *Snake Game*
-
-Управление: WASD
-Цель: Съешь максимум яблок!
-
-Для игры откройте веб-версию:`,
+    '💻 Открываю редактор кода...',
     {
-      parse_mode: 'Markdown',
       ...Markup.inlineKeyboard([
-        [Markup.button.url('🎮 Играть', `${process.env.REPLIT_DEV_DOMAIN || 'https://clinego.replit.app'}?game=snake`)]
-      ])
-    }
-  );
-});
-
-bot.action('game_2048', (ctx) => {
-  ctx.answerCbQuery();
-  ctx.reply(
-    `🎯 *2048 Game*
-
-Управление: Стрелки или WASD
-Цель: Собрать плитку 2048!
-
-Для игры откройте веб-версию:`,
-    {
-      parse_mode: 'Markdown',
-      ...Markup.inlineKeyboard([
-        [Markup.button.url('🎮 Играть', `${process.env.REPLIT_DEV_DOMAIN || 'https://clinego.replit.app'}?game=2048`)]
+        [Markup.button.webApp('💻 Открыть редактор', webAppUrl)]
       ])
     }
   );
 });
 
 bot.command('offer', (ctx) => {
+  const webAppUrl = `${getWebAppUrl()}?view=offers`;
+  
   ctx.reply(
-    `📄 *Генератор Бизнес Предложений*
-
-Создайте профессиональное коммерческое предложение!
-
-Для создания оффера используйте веб-интерфейс:`,
+    '📄 Открываю генератор предложений...',
     {
-      parse_mode: 'Markdown',
       ...Markup.inlineKeyboard([
-        [Markup.button.url('📝 Создать оффер', `${process.env.REPLIT_DEV_DOMAIN || 'https://clinego.replit.app'}?view=offers`)]
+        [Markup.button.webApp('📄 Создать оффер', webAppUrl)]
       ])
     }
   );
 });
 
-bot.command('extension', (ctx) => {
-  ctx.reply(
-    `📦 *Codex Free Extension*
-
-VSCode расширение для AI-разработки
-
-*Возможности:*
-✅ AI автодополнение
-✅ Генерация кода
-✅ Рефакторинг
-✅ Документация
-
-*Установка:*
-1. Скачайте .vsix файл
-2. Откройте VSCode
-3. Extensions → Install from VSIX
-4. Выберите файл
-
-Версия: 1.0.0 | Размер: 2.5 MB`,
-    {
-      parse_mode: 'Markdown',
-      ...Markup.inlineKeyboard([
-        [Markup.button.url('⬇️ Скачать', process.env.REPLIT_DEV_DOMAIN || 'https://clinego.replit.app')]
-      ])
-    }
-  );
-});
-
-bot.command('about', (ctx) => {
-  ctx.reply(
-    `ℹ️ *О ClineGo IDE*
-
-AI-powered среда разработки с интегрированными инструментами
-
-*Компоненты:*
-• Monaco Code Editor
-• Internet Radio (NPR, KEXP, WNYC, KCRW)
-• Игры (Snake, 2048)
-• Генератор предложений
-• Telegram авторизация
-• VSCode расширение
-
-*Технологии:*
-React • TypeScript • Node.js • Telegraf • Monaco Editor
-
-🔗 GitHub: github.com/hoOjlGun/super-octo-robot`,
-    { parse_mode: 'Markdown' }
-  );
+bot.on('web_app_data', (ctx) => {
+  try {
+    const data = JSON.parse(ctx.webAppData.data);
+    
+    ctx.reply(
+      `✅ Данные получены:\n\n${JSON.stringify(data, null, 2)}`,
+      { parse_mode: 'Markdown' }
+    );
+  } catch (error) {
+    ctx.reply('❌ Ошибка обработки данных');
+  }
 });
 
 bot.on('text', (ctx) => {
-  ctx.reply(
-    '❓ Не понял команду. Используйте /help для списка команд',
-    {
-      ...Markup.inlineKeyboard([
-        [Markup.button.callback('📋 Показать команды', 'show_help')]
-      ])
-    }
-  );
-});
-
-bot.action('show_help', (ctx) => {
-  ctx.answerCbQuery();
-  ctx.reply(
-    `📚 *Команды ClineGo Bot:*
-
-/code - Редактор кода Monaco
-/radio - Радио станции США
-/games - Змейка и 2048
-/offer - Создать бизнес-оффер
-/extension - Скачать расширение VSCode
-/about - О проекте`,
-    { parse_mode: 'Markdown' }
-  );
+  if (!ctx.message.text.startsWith('/')) {
+    const webAppUrl = getWebAppUrl();
+    
+    ctx.reply(
+      'Используйте кнопку ниже для запуска приложения 👇',
+      {
+        ...Markup.keyboard([
+          [Markup.button.webApp('🚀 Открыть ClineGo IDE', webAppUrl)]
+        ]).resize()
+      }
+    );
+  }
 });
 
 export function startBot() {
   bot.launch();
   console.log('🤖 Telegram bot started successfully!');
+  console.log('📱 WebApp URL:', getWebAppUrl());
 
   process.once('SIGINT', () => bot.stop('SIGINT'));
   process.once('SIGTERM', () => bot.stop('SIGTERM'));
